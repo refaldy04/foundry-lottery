@@ -66,9 +66,23 @@ contract RaffleTest is Test {
         // Arrange
         vm.prank(PLAYER);
         // Act
-        vm.expectEmit(true, false, false, false, address(raffle)); // tiga parameter pertama index, yang keempat non-index
+        vm.expectEmit(true, false, false, false, address(raffle)); // tiga parameter pertama index, yang keempat non-index // ini foundry cheatcode
         emit RaffleEntered(PLAYER);
         // Assert
+        raffle.enterRaffle{value: entranceFee}();
+    }
+
+    function testDontAllowPlayersToEnterWhileRaffleIsCalculating() public {
+        // Arrange
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+        vm.warp(block.timestamp + interval + 1);
+        vm.roll(block.number + 1);
+        raffle.performUpkeep("");
+
+        // Act / Assert
+        vm.expectRevert(Raffle.Raffle__RaffleNotOpen.selector);
+        vm.prank(PLAYER);
         raffle.enterRaffle{value: entranceFee}();
     }
 }
